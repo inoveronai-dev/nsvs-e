@@ -4,12 +4,20 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { nanoid } from "nanoid";
 import type {
+  InventoryCounts,
   Job,
   OpsData,
+  ParkingDistance,
   Quote,
   Role,
   SiteVisit,
+  SpecialItems,
   VisitMedia,
+} from "@/types/ops";
+import {
+  EMPTY_INVENTORY,
+  EMPTY_SPECIAL_ITEMS,
+  formatInventorySummary,
 } from "@/types/ops";
 import {
   buildSeedBundle,
@@ -68,6 +76,18 @@ interface OpsStore extends OpsData {
     customerPhone: string;
     addressFrom: string;
     addressTo: string;
+    floorFrom?: number;
+    floorTo?: number;
+    elevatorFrom?: boolean;
+    elevatorTo?: boolean;
+    parkingFrom?: ParkingDistance;
+    parkingTo?: ParkingDistance;
+    inventoryCounts?: InventoryCounts;
+    customItems?: string;
+    specialRequests?: string;
+    specialItems?: SpecialItems;
+    media?: VisitMedia[];
+    itemsList?: string;
     startsAt: string;
     endsAt: string;
     assignedWorkerIds: string[];
@@ -285,6 +305,17 @@ export const useOpsStore = create<OpsStore>()(
         const visitId = nanoid(10);
         const quoteId = nanoid(10);
         const jobId = nanoid(10);
+        const inventoryCounts = {
+          ...EMPTY_INVENTORY,
+          ...(input.inventoryCounts ?? {}),
+        };
+        const customItems =
+          input.customItems?.trim() ||
+          (input.itemsList ? "" : "Manuálne naplánovaná zákazka");
+        const itemsList =
+          input.itemsList?.trim() ||
+          formatInventorySummary(inventoryCounts, customItems) ||
+          "Manuálne naplánovaná zákazka";
         const visit: SiteVisit = {
           id: visitId,
           createdById: get().currentUserId ?? "w-owner",
@@ -296,30 +327,21 @@ export const useOpsStore = create<OpsStore>()(
           customerPhone: input.customerPhone.trim() || "—",
           addressFrom: input.addressFrom.trim(),
           addressTo: input.addressTo.trim(),
-          floorFrom: 0,
-          floorTo: 0,
-          elevatorFrom: true,
-          elevatorTo: true,
-          parkingFrom: "0-10m",
-          parkingTo: "0-10m",
-          itemsList: "Manuálne naplánovaná zákazka",
-          inventoryCounts: {
-            krabice: 0,
-            skrina: 0,
-            postel: 0,
-            stol: 0,
-            stolicky: 0,
-            spotrebice: 0,
-          },
-          customItems: "Manuálne naplánovaná zákazka",
-          specialRequests: "",
+          floorFrom: input.floorFrom ?? 0,
+          floorTo: input.floorTo ?? 0,
+          elevatorFrom: input.elevatorFrom ?? true,
+          elevatorTo: input.elevatorTo ?? true,
+          parkingFrom: input.parkingFrom ?? "0-10m",
+          parkingTo: input.parkingTo ?? "0-10m",
+          itemsList,
+          inventoryCounts,
+          customItems,
+          specialRequests: input.specialRequests?.trim() ?? "",
           specialItems: {
-            piano: false,
-            safe: false,
-            fragile: false,
-            assembly: false,
+            ...EMPTY_SPECIAL_ITEMS,
+            ...(input.specialItems ?? {}),
           },
-          media: [],
+          media: input.media ?? [],
           visitAt: now,
           createdAt: now,
           updatedAt: now,
@@ -328,18 +350,21 @@ export const useOpsStore = create<OpsStore>()(
           id: quoteId,
           siteVisitId: visitId,
           priceEur: input.finalAmountEur,
-          internalNotes: "Vytvorené z kalendára",
+          internalNotes: "Priamo naplánované majiteľom",
           pdfDataUrl: null,
           status: "accepted",
           pricedAt: now,
-          pricedByName: "Majiteľ NSVS-E",
+          pricedByName:
+            get().workers.find((w) => w.id === get().currentUserId)?.name ??
+            "Majiteľ NSVS-E",
         };
+        const schedule = splitSchedule(input.startsAt);
         const job: Job = {
           id: jobId,
           quoteId,
           siteVisitId: visitId,
-          scheduledDate: splitSchedule(input.startsAt).scheduledDate,
-          scheduledTime: splitSchedule(input.startsAt).scheduledTime,
+          scheduledDate: schedule.scheduledDate,
+          scheduledTime: schedule.scheduledTime,
           startsAt: input.startsAt,
           endsAt: input.endsAt,
           crewInstructions: input.crewInstructions?.trim() ?? "",

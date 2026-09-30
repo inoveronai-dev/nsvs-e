@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { CalendarPlus, ChevronRight } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { RequireRole } from "@/components/demo/require-role";
 import { MonthlyCalendar } from "@/components/calendar/monthly-calendar";
@@ -30,6 +30,15 @@ function OwnerHomeInner() {
   return (
     <AppShell role="owner" title="Prehľad">
       <div className="space-y-4">
+        <Link
+          href="/owner/schedule"
+          prefetch={false}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#F5D400] px-4 py-3.5 text-sm font-bold text-charcoal shadow-sm transition hover:brightness-95"
+        >
+          <CalendarPlus className="h-5 w-5" />
+          Naplánovať zákazku
+        </Link>
+
         <div className="grid grid-cols-2 gap-3">
           <Card>
             <p className="text-xs font-semibold uppercase text-muted">Čaká</p>
