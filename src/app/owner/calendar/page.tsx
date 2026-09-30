@@ -11,7 +11,7 @@ function CalendarWithFocus() {
   const day = params.get("day");
   return (
     <AppShell role="owner" title="Kalendár">
-      <MonthlyCalendar role="owner" focusDay={day} />
+      <MonthlyCalendar role="owner" focusDay={day} showScheduleCta />
     </AppShell>
   );
 }

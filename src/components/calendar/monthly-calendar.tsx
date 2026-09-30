@@ -32,7 +32,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { AddJobDialog } from "@/components/calendar/add-job-dialog";
 import {
   jobCalendarDayKey,
   jobChipLabel,
@@ -65,9 +64,9 @@ const VIEW_OPTIONS: {
   label: string;
   icon: typeof CalendarDays;
 }[] = [
-  { id: "month", label: "Mesiac", icon: CalendarDays },
-  { id: "week", label: "Týždeň", icon: CalendarRange },
   { id: "day", label: "Deň", icon: Clock },
+  { id: "week", label: "Týždeň", icon: CalendarRange },
+  { id: "month", label: "Mesiac", icon: CalendarDays },
 ];
 
 function jobTimeLabel(job: Job) {
@@ -112,11 +111,15 @@ function jobBlockStyle(job: Job): { top: number; height: number } {
 export function MonthlyCalendar({
   role,
   focusDay = null,
+  showScheduleCta = false,
 }: {
   role: Role;
   focusDay?: string | null;
+  /** Owner-only: show the primary Naplánovať zákazku button above the calendar */
+  showScheduleCta?: boolean;
 }) {
   const router = useRouter();
+  const isOwner = role === "owner";
   const jobs = useOpsStore((s) => s.jobs);
   const visits = useOpsStore((s) => s.siteVisits);
   const workers = useOpsStore((s) => s.workers);
@@ -125,8 +128,6 @@ export function MonthlyCalendar({
   const [cursor, setCursor] = useState(() => {
     return parseFocusDay(focusDay) ?? new Date();
   });
-  const [addOpen, setAddOpen] = useState(false);
-  const [addDate, setAddDate] = useState<Date>(() => new Date());
 
   useEffect(() => {
     const d = parseFocusDay(focusDay);
@@ -200,17 +201,16 @@ export function MonthlyCalendar({
   function selectDay(day: Date, options?: { switchToDay?: boolean }) {
     setCursor(day);
     if (options?.switchToDay) setView("day");
-    if (role === "owner") {
+    if (isOwner) {
       router.replace(`/owner/calendar?day=${format(day, "yyyy-MM-dd")}`, {
         scroll: false,
       });
     }
   }
 
-  function openQuickAdd(day: Date) {
-    setCursor(day);
-    setAddDate(day);
-    setAddOpen(true);
+  function openOwnerSchedule(day?: Date) {
+    if (!isOwner) return;
+    router.push(scheduleHref(day));
   }
 
   function chipText(job: Job) {
@@ -232,7 +232,7 @@ export function MonthlyCalendar({
 
   return (
     <div className="w-full min-w-0 space-y-3">
-      {role === "owner" ? (
+      {isOwner && showScheduleCta ? (
         <Link
           href={scheduleHref()}
           prefetch={false}
@@ -254,27 +254,17 @@ export function MonthlyCalendar({
             </h2>
           </div>
           <div className="flex shrink-0 items-center gap-1">
-            {role === "owner" ? (
+            {isOwner ? (
               <Button
                 type="button"
                 size="icon"
                 variant="accent"
                 aria-label="Naplánovať zákazku"
-                onClick={() => router.push(scheduleHref())}
+                onClick={() => openOwnerSchedule()}
               >
                 <Plus className="h-5 w-5" />
               </Button>
-            ) : (
-              <Button
-                type="button"
-                size="icon"
-                variant="accent"
-                aria-label="Pridať zákazku"
-                onClick={() => openQuickAdd(cursor)}
-              >
-                <Plus className="h-5 w-5" />
-              </Button>
-            )}
+            ) : null}
             <Button
               type="button"
               size="icon"
@@ -580,7 +570,7 @@ export function MonthlyCalendar({
             <span className="h-2 w-2 rounded-full bg-[#0D5C63]" /> Schválené
             zákazky
           </span>
-          {role === "owner" ? (
+          {isOwner ? (
             <Link
               href={scheduleHref()}
               prefetch={false}
@@ -588,15 +578,7 @@ export function MonthlyCalendar({
             >
               + Naplánovať na {format(cursor, "d. M.")}
             </Link>
-          ) : (
-            <button
-              type="button"
-              className="ml-auto font-semibold text-teal underline-offset-2 hover:underline"
-              onClick={() => openQuickAdd(cursor)}
-            >
-              + Pridať na {format(cursor, "d. M.")}
-            </button>
-          )}
+          ) : null}
         </div>
       </Card>
 
@@ -619,27 +601,15 @@ export function MonthlyCalendar({
           {dayJobs.length === 0 ? (
             <div className="rounded-xl bg-surface px-4 py-6 text-center">
               <p className="text-sm text-muted">Žiadne naplánované zákazky.</p>
-              {role === "owner" ? (
-                <Button
-                  type="button"
-                  variant="accent"
-                  className="mt-3"
-                  onClick={() => router.push(scheduleHref())}
+              {!isOwner ? (
+                <Link
+                  href="/field/visits/new"
+                  prefetch={false}
+                  className="mt-3 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#0D5C63] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0A4A50]"
                 >
-                  <Plus className="h-4 w-4" />
-                  Naplánovať zákazku
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  variant="primary"
-                  className="mt-3"
-                  onClick={() => openQuickAdd(cursor)}
-                >
-                  <Plus className="h-4 w-4" />
-                  Naplánovať zákazku
-                </Button>
-              )}
+                  Nová obhliadka
+                </Link>
+              ) : null}
             </div>
           ) : (
             <ul className="space-y-2">
@@ -713,8 +683,6 @@ export function MonthlyCalendar({
           )}
         </Card>
       ) : null}
-
-      <AddJobDialog date={addDate} open={addOpen} onOpenChange={setAddOpen} />
     </div>
   );
 }
