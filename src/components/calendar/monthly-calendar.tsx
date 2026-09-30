@@ -38,6 +38,7 @@ import {
   normalizeJobSchedule,
   splitSchedule,
 } from "@/lib/calendar/schedule";
+import { getDemoCalendarAnchor } from "@/lib/store/seed";
 import { useOpsStore } from "@/lib/store/ops-store";
 import { cn, formatEur } from "@/lib/utils";
 import type { Job, Role } from "@/types/ops";
@@ -126,7 +127,7 @@ export function MonthlyCalendar({
 
   const [view, setView] = useState<CalendarView>("month");
   const [cursor, setCursor] = useState(() => {
-    return parseFocusDay(focusDay) ?? new Date();
+    return parseFocusDay(focusDay) ?? getDemoCalendarAnchor();
   });
 
   useEffect(() => {

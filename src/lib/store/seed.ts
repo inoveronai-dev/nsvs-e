@@ -25,17 +25,46 @@ function atDay(base: Date, dayOffset: number, hour: number): string {
   return d.toISOString();
 }
 
-/** Absolute day-of-month in the same month as `base` (clamped to valid days). */
-function atMonthDay(
+/**
+ * When we're in the last days of a month, seed into the *next* month
+ * (e.g. 30 Sep → October) so the calendar looks busy ahead.
+ */
+export function getDemoCalendarMonth(base = new Date()): {
+  year: number;
+  month: number;
+} {
+  const lastDay = new Date(base.getFullYear(), base.getMonth() + 1, 0).getDate();
+  if (base.getDate() >= lastDay - 2) {
+    const next = new Date(base.getFullYear(), base.getMonth() + 1, 1);
+    return { year: next.getFullYear(), month: next.getMonth() };
+  }
+  return { year: base.getFullYear(), month: base.getMonth() };
+}
+
+/** First day of the demo calendar month (noon local). */
+export function getDemoCalendarAnchor(base = new Date()): Date {
+  const { year, month } = getDemoCalendarMonth(base);
+  return new Date(year, month, 1, 12, 0, 0, 0);
+}
+
+/** Day-of-month inside the demo calendar month. */
+function atSeedMonthDay(
   base: Date,
   dayOfMonth: number,
   hour: number,
   minute = 0,
 ): string {
-  const d = new Date(base.getFullYear(), base.getMonth(), 1, 12, 0, 0, 0);
-  const last = new Date(base.getFullYear(), base.getMonth() + 1, 0).getDate();
-  d.setDate(Math.min(Math.max(1, dayOfMonth), last));
-  d.setHours(hour, minute, 0, 0);
+  const { year, month } = getDemoCalendarMonth(base);
+  const last = new Date(year, month + 1, 0).getDate();
+  const d = new Date(
+    year,
+    month,
+    Math.min(Math.max(1, dayOfMonth), last),
+    hour,
+    minute,
+    0,
+    0,
+  );
   return d.toISOString();
 }
 
@@ -341,9 +370,9 @@ export function buildSeedBundle(now = new Date()) {
       specialRequests: "3. poschodie bez výťahu – popruhy a vozík povinné",
       specialItems: { ...EMPTY_SPECIAL_ITEMS, assembly: true },
       media: [],
-      visitAt: atMonthDay(now, 4, 10),
-      createdAt: atMonthDay(now, 4, 11),
-      updatedAt: atMonthDay(now, 5, 9),
+      visitAt: atSeedMonthDay(now, 4, 10),
+      createdAt: atSeedMonthDay(now, 4, 11),
+      updatedAt: atSeedMonthDay(now, 5, 9),
     },
     {
       id: "sv-accepted-5",
@@ -366,9 +395,9 @@ export function buildSeedBundle(now = new Date()) {
       specialRequests: "3-izbový byt s balkónom – demontáž postelí",
       specialItems: { ...EMPTY_SPECIAL_ITEMS, fragile: true, assembly: true },
       media: [],
-      visitAt: atMonthDay(now, 6, 9),
-      createdAt: atMonthDay(now, 6, 10),
-      updatedAt: atMonthDay(now, 7, 14),
+      visitAt: atSeedMonthDay(now, 6, 9),
+      createdAt: atSeedMonthDay(now, 6, 10),
+      updatedAt: atSeedMonthDay(now, 7, 14),
     },
     {
       id: "sv-accepted-6",
@@ -391,9 +420,9 @@ export function buildSeedBundle(now = new Date()) {
       specialRequests: "Úzka ulica v Starom Meste – krátke parkovanie",
       specialItems: { ...EMPTY_SPECIAL_ITEMS, fragile: true },
       media: [],
-      visitAt: atMonthDay(now, 8, 11),
-      createdAt: atMonthDay(now, 8, 12),
-      updatedAt: atMonthDay(now, 9, 10),
+      visitAt: atSeedMonthDay(now, 8, 11),
+      createdAt: atSeedMonthDay(now, 8, 12),
+      updatedAt: atSeedMonthDay(now, 9, 10),
     },
     {
       id: "sv-accepted-7",
@@ -416,9 +445,9 @@ export function buildSeedBundle(now = new Date()) {
       specialRequests: "Ranný slot – detská izba ako prvá",
       specialItems: { ...EMPTY_SPECIAL_ITEMS, assembly: true },
       media: [],
-      visitAt: atMonthDay(now, 10, 9),
-      createdAt: atMonthDay(now, 10, 10),
-      updatedAt: atMonthDay(now, 11, 16),
+      visitAt: atSeedMonthDay(now, 10, 9),
+      createdAt: atSeedMonthDay(now, 10, 10),
+      updatedAt: atSeedMonthDay(now, 11, 16),
     },
     {
       id: "sv-accepted-8",
@@ -441,9 +470,9 @@ export function buildSeedBundle(now = new Date()) {
       specialRequests: "Bez výťahu, 3. poschodie – 3 pracovníci",
       specialItems: { ...EMPTY_SPECIAL_ITEMS },
       media: [],
-      visitAt: atMonthDay(now, 12, 10),
-      createdAt: atMonthDay(now, 12, 11),
-      updatedAt: atMonthDay(now, 13, 9),
+      visitAt: atSeedMonthDay(now, 12, 10),
+      createdAt: atSeedMonthDay(now, 12, 11),
+      updatedAt: atSeedMonthDay(now, 13, 9),
     },
     {
       id: "sv-accepted-9",
@@ -466,9 +495,9 @@ export function buildSeedBundle(now = new Date()) {
       specialRequests: "Popoludňajší termín – zákazníčka po 14:00",
       specialItems: { ...EMPTY_SPECIAL_ITEMS, fragile: true },
       media: [],
-      visitAt: atMonthDay(now, 14, 15),
-      createdAt: atMonthDay(now, 14, 16),
-      updatedAt: atMonthDay(now, 15, 10),
+      visitAt: atSeedMonthDay(now, 14, 15),
+      createdAt: atSeedMonthDay(now, 14, 16),
+      updatedAt: atSeedMonthDay(now, 15, 10),
     },
     {
       id: "sv-accepted-10",
@@ -491,9 +520,9 @@ export function buildSeedBundle(now = new Date()) {
       specialRequests: "Knižnica – krehké sklo, deky",
       specialItems: { ...EMPTY_SPECIAL_ITEMS, fragile: true, assembly: true },
       media: [],
-      visitAt: atMonthDay(now, 18, 10),
-      createdAt: atMonthDay(now, 18, 11),
-      updatedAt: atMonthDay(now, 19, 12),
+      visitAt: atSeedMonthDay(now, 18, 10),
+      createdAt: atSeedMonthDay(now, 18, 11),
+      updatedAt: atSeedMonthDay(now, 19, 12),
     },
   ];
 
@@ -545,7 +574,7 @@ export function buildSeedBundle(now = new Date()) {
       internalNotes: "2-izbový · Petržalka bez výťahu",
       pdfDataUrl: null,
       status: "accepted",
-      pricedAt: atMonthDay(now, 5, 10),
+      pricedAt: atSeedMonthDay(now, 5, 10),
       pricedByName: "Majiteľ NSVS-E",
     },
     {
@@ -555,7 +584,7 @@ export function buildSeedBundle(now = new Date()) {
       internalNotes: "3-izbový Ružinov + spotrebiče",
       pdfDataUrl: null,
       status: "accepted",
-      pricedAt: atMonthDay(now, 7, 15),
+      pricedAt: atSeedMonthDay(now, 7, 15),
       pricedByName: "Majiteľ NSVS-E",
     },
     {
@@ -565,7 +594,7 @@ export function buildSeedBundle(now = new Date()) {
       internalNotes: "Garsónka Staré Mesto",
       pdfDataUrl: null,
       status: "accepted",
-      pricedAt: atMonthDay(now, 9, 11),
+      pricedAt: atSeedMonthDay(now, 9, 11),
       pricedByName: "Majiteľ NSVS-E",
     },
     {
@@ -575,7 +604,7 @@ export function buildSeedBundle(now = new Date()) {
       internalNotes: "3-izbový Karlova Ves → Dúbravka",
       pdfDataUrl: null,
       status: "accepted",
-      pricedAt: atMonthDay(now, 11, 17),
+      pricedAt: atSeedMonthDay(now, 11, 17),
       pricedByName: "Majiteľ NSVS-E",
     },
     {
@@ -585,7 +614,7 @@ export function buildSeedBundle(now = new Date()) {
       internalNotes: "Dúbravka · 3. poschodie bez výťahu",
       pdfDataUrl: null,
       status: "accepted",
-      pricedAt: atMonthDay(now, 13, 10),
+      pricedAt: atSeedMonthDay(now, 13, 10),
       pricedByName: "Majiteľ NSVS-E",
     },
     {
@@ -595,7 +624,7 @@ export function buildSeedBundle(now = new Date()) {
       internalNotes: "Petržalka popoludnie – busy day s garsónkou",
       pdfDataUrl: null,
       status: "accepted",
-      pricedAt: atMonthDay(now, 15, 11),
+      pricedAt: atSeedMonthDay(now, 15, 11),
       pricedByName: "Majiteľ NSVS-E",
     },
     {
@@ -605,7 +634,7 @@ export function buildSeedBundle(now = new Date()) {
       internalNotes: "Staré Mesto → Karlova Ves",
       pdfDataUrl: null,
       status: "accepted",
-      pricedAt: atMonthDay(now, 19, 13),
+      pricedAt: atSeedMonthDay(now, 19, 13),
       pricedByName: "Majiteľ NSVS-E",
     },
   ];
@@ -615,9 +644,9 @@ export function buildSeedBundle(now = new Date()) {
       id: "job-1",
       quoteId: "q-1",
       siteVisitId: "sv-accepted-1",
-      startsAt: atMonthDay(now, 8, 8),
-      endsAt: atMonthDay(now, 8, 12),
-      ...splitSchedule(atMonthDay(now, 8, 8)),
+      startsAt: atSeedMonthDay(now, 8, 8),
+      endsAt: atSeedMonthDay(now, 8, 12),
+      ...splitSchedule(atSeedMonthDay(now, 8, 8)),
       crewInstructions: "Priniesť popruhy a vozík. Zákazník na mieste od 7:45.",
       status: "scheduled",
       finalAmountEur: 380,
@@ -628,9 +657,9 @@ export function buildSeedBundle(now = new Date()) {
       id: "job-2",
       quoteId: "q-2",
       siteVisitId: "sv-accepted-2",
-      startsAt: atMonthDay(now, 12, 9),
-      endsAt: atMonthDay(now, 12, 14),
-      ...splitSchedule(atMonthDay(now, 12, 9)),
+      startsAt: atSeedMonthDay(now, 16, 9),
+      endsAt: atSeedMonthDay(now, 16, 14),
+      ...splitSchedule(atSeedMonthDay(now, 16, 9)),
       crewInstructions: "Klavír – popruhy a deky. Parkovanie na Šancovej.",
       status: "scheduled",
       finalAmountEur: 650,
@@ -641,9 +670,9 @@ export function buildSeedBundle(now = new Date()) {
       id: "job-3",
       quoteId: "q-3",
       siteVisitId: "sv-accepted-3",
-      startsAt: atMonthDay(now, 22, 7),
-      endsAt: atMonthDay(now, 22, 13),
-      ...splitSchedule(atMonthDay(now, 22, 7)),
+      startsAt: atSeedMonthDay(now, 28, 7),
+      endsAt: atSeedMonthDay(now, 28, 13),
+      ...splitSchedule(atSeedMonthDay(now, 28, 7)),
       crewInstructions: "Trezor 2 osoby. Montáž stolov na mieste.",
       status: "scheduled",
       finalAmountEur: 720,
@@ -654,9 +683,9 @@ export function buildSeedBundle(now = new Date()) {
       id: "job-4",
       quoteId: "q-4",
       siteVisitId: "sv-accepted-4",
-      startsAt: atMonthDay(now, 5, 8),
-      endsAt: atMonthDay(now, 5, 12),
-      ...splitSchedule(atMonthDay(now, 5, 8)),
+      startsAt: atSeedMonthDay(now, 5, 8),
+      endsAt: atSeedMonthDay(now, 5, 12),
+      ...splitSchedule(atSeedMonthDay(now, 5, 8)),
       crewInstructions:
         "Sťahovanie 2-izbového bytu · Petržalka, 3. poschodie bez výťahu.",
       status: "scheduled",
@@ -668,9 +697,9 @@ export function buildSeedBundle(now = new Date()) {
       id: "job-5",
       quoteId: "q-5",
       siteVisitId: "sv-accepted-5",
-      startsAt: atMonthDay(now, 10, 8),
-      endsAt: atMonthDay(now, 10, 13),
-      ...splitSchedule(atMonthDay(now, 10, 8)),
+      startsAt: atSeedMonthDay(now, 12, 8),
+      endsAt: atSeedMonthDay(now, 12, 13),
+      ...splitSchedule(atSeedMonthDay(now, 12, 8)),
       crewInstructions:
         "3-izbový byt s balkónom · Ružinov. Demontáž postelí na mieste.",
       status: "scheduled",
@@ -682,11 +711,11 @@ export function buildSeedBundle(now = new Date()) {
       id: "job-6",
       quoteId: "q-6",
       siteVisitId: "sv-accepted-6",
-      startsAt: atMonthDay(now, 15, 8),
-      endsAt: atMonthDay(now, 15, 11),
-      ...splitSchedule(atMonthDay(now, 15, 8)),
+      startsAt: atSeedMonthDay(now, 1, 8),
+      endsAt: atSeedMonthDay(now, 1, 11),
+      ...splitSchedule(atSeedMonthDay(now, 1, 8)),
       crewInstructions:
-        "Ranný slot Staré Mesto · úzka Ventúrska, krátke parkovanie.",
+        "1. október · ranný slot 08:00 Staré Mesto (Ventúrska).",
       status: "scheduled",
       finalAmountEur: 250,
       assignedWorkerIds: ["w-crew-1", "w-field-1"],
@@ -696,11 +725,11 @@ export function buildSeedBundle(now = new Date()) {
       id: "job-7",
       quoteId: "q-9",
       siteVisitId: "sv-accepted-9",
-      startsAt: atMonthDay(now, 15, 14),
-      endsAt: atMonthDay(now, 15, 18),
-      ...splitSchedule(atMonthDay(now, 15, 14)),
+      startsAt: atSeedMonthDay(now, 1, 14),
+      endsAt: atSeedMonthDay(now, 1, 18),
+      ...splitSchedule(atSeedMonthDay(now, 1, 14)),
       crewInstructions:
-        "Popoludnie Petržalka · ten istý deň ako garsónka v Starom Meste.",
+        "1. október · popoludnie 14:00 Petržalka – busy day s ranným slotom.",
       status: "scheduled",
       finalAmountEur: 390,
       assignedWorkerIds: ["w-crew-2", "w-field-2"],
@@ -710,9 +739,9 @@ export function buildSeedBundle(now = new Date()) {
       id: "job-8",
       quoteId: "q-7",
       siteVisitId: "sv-accepted-7",
-      startsAt: atMonthDay(now, 18, 8),
-      endsAt: atMonthDay(now, 18, 14),
-      ...splitSchedule(atMonthDay(now, 18, 8)),
+      startsAt: atSeedMonthDay(now, 20, 8),
+      endsAt: atSeedMonthDay(now, 20, 14),
+      ...splitSchedule(atSeedMonthDay(now, 20, 8)),
       crewInstructions:
         "Karlova Ves → Dúbravka · 3-izbový, detská izba ako prvá.",
       status: "scheduled",
@@ -724,9 +753,9 @@ export function buildSeedBundle(now = new Date()) {
       id: "job-9",
       quoteId: "q-8",
       siteVisitId: "sv-accepted-8",
-      startsAt: atMonthDay(now, 20, 9),
-      endsAt: atMonthDay(now, 20, 13),
-      ...splitSchedule(atMonthDay(now, 20, 9)),
+      startsAt: atSeedMonthDay(now, 24, 9),
+      endsAt: atSeedMonthDay(now, 24, 13),
+      ...splitSchedule(atSeedMonthDay(now, 24, 9)),
       crewInstructions: "Dúbravka · 3. poschodie bez výťahu, 3 ľudia.",
       status: "scheduled",
       finalAmountEur: 410,
@@ -737,9 +766,9 @@ export function buildSeedBundle(now = new Date()) {
       id: "job-10",
       quoteId: "q-10",
       siteVisitId: "sv-accepted-10",
-      startsAt: atMonthDay(now, 25, 8),
-      endsAt: atMonthDay(now, 25, 12),
-      ...splitSchedule(atMonthDay(now, 25, 8)),
+      startsAt: atSeedMonthDay(now, 30, 8),
+      endsAt: atSeedMonthDay(now, 30, 12),
+      ...splitSchedule(atSeedMonthDay(now, 30, 8)),
       crewInstructions:
         "Staré Mesto → Karlova Ves · knižnica, krehké sklo, deky.",
       status: "scheduled",
