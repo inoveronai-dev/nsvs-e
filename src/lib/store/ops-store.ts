@@ -25,7 +25,7 @@ import {
 } from "@/lib/store/seed";
 import { splitSchedule, normalizeJobSchedule } from "@/lib/calendar/schedule";
 
-const STORAGE_KEY = "nsvs-e-ops-v6";
+const STORAGE_KEY = "nsvs-e-ops-v7";
 
 function createSeedState(): Omit<OpsData, "role" | "currentUserId"> & {
   role: Role | null;
